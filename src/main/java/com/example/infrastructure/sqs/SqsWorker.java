@@ -12,17 +12,18 @@ import com.example.user.event.EmailUpdateEvent;
 import com.example.user.service.UserSyncService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import io.quarkus.arc.profile.IfBuildProfile;
+import io.quarkus.arc.properties.IfBuildProperty;
 import io.quarkus.runtime.Startup;
 import jakarta.annotation.PreDestroy;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.context.control.ActivateRequestContext;
 import jakarta.inject.Inject;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.Message;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 @ApplicationScoped
-@IfBuildProfile("prod")
+@IfBuildProperty(name = "app.messaging.provider", stringValue = "sqs")
 public class SqsWorker {
 
     @Inject
@@ -51,6 +52,7 @@ public class SqsWorker {
         }
     }
 
+    @ActivateRequestContext
     private void pollLoop() {
         while (running.get()) {
             try {
@@ -61,11 +63,6 @@ public class SqsWorker {
                         .build();
 
                 var response = sqsClient.receiveMessage(request);
-
-                for (var msg : response.messages()) {
-                    process(msg);
-                    delete(msg);
-                }
 
                 for (var msg : response.messages()) {
                     try {
