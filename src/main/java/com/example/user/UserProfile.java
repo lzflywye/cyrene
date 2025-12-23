@@ -1,6 +1,9 @@
-package com.example.user.entity;
+package com.example.user;
 
 import java.time.Instant;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import jakarta.persistence.Column;
@@ -8,9 +11,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "user_profiles")
 public class UserProfile extends PanacheEntityBase {
 
     @Id
@@ -24,30 +28,16 @@ public class UserProfile extends PanacheEntityBase {
     public String displayName;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
-    public UserStatus status;
+    @Column(name = "status", nullable = false)
+    public UserStatus status = UserStatus.PENDING;
 
-    @Column(name = "is_email_synced")
-    public boolean isEmailSynced;
-
+    @CreationTimestamp
     @Column(name = "created_at")
     public Instant createdAt;
 
+    @UpdateTimestamp
     @Column(name = "updated_at")
     public Instant updatedAt;
-
-    @PrePersist
-    void prePersist() {
-        if (this.createdAt == null) {
-            this.createdAt = Instant.now();
-        }
-        if (this.updatedAt == null) {
-            this.updatedAt = Instant.now();
-        }
-        if (this.status == null) {
-            this.status = UserStatus.PENDING;
-        }
-    }
 
     public static UserProfile findByUserId(String userId) {
         return find("userId", userId).firstResult();
