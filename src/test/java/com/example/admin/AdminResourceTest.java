@@ -1,29 +1,34 @@
 package com.example.admin;
 
+import java.util.UUID;
+
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.example.user.UserProfile;
-import com.example.user.UserStatus;
+import com.example.entity.Account;
+import com.example.entity.AccountStatus;
+import com.example.repository.AccountRepository;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.security.TestSecurity;
 import io.restassured.RestAssured;
+import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 
 @QuarkusTest
 public class AdminResourceTest {
 
+    @Inject
+    AccountRepository userProfileRepository;
+
     @BeforeEach
     @Transactional
     void setup() {
-        UserProfile.deleteAll();
-        UserProfile user = new UserProfile();
-        user.userId = "test-admin-target";
-        user.email = "target@example.com";
-        user.status = UserStatus.ACTIVE;
-        user.persist();
+        userProfileRepository.deleteAll();
+        Account account = new Account(UUID.randomUUID().toString(), "target@example.com", "test-admin-target",
+                AccountStatus.ACTIVE);
+        userProfileRepository.persist(account);
     }
 
     @Test
